@@ -1,6 +1,4 @@
 module UnicodeHistogram
-using Boilerplate: @typeof, @sizes, @display
-using Formatting
 
 export histogram
 
