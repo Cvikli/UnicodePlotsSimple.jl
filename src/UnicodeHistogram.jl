@@ -4,7 +4,7 @@ using Formatting
 
 export histogram
 
-function histogram(values; width=64, height=3, title="")
+function histogram(values; width=64, height=3, title="", printstat=true)
 	ϵ = 1e-11
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
@@ -36,16 +36,18 @@ function histogram(values; width=64, height=3, title="")
 	end
 	v_mean = sum(values) / length(values)
 	v_σ = sqrt(sum((values .- v_mean).^2) / (length(values) - 1))
-	print("mean ± σ:  ") 
-	printstyled(lpad(round(v_mean; digits=6), 6); color=:green, bold=true)
-	print(" ± ")
-	printstyled(lpad(round(v_σ; digits=6), 6); color=:green, bold=true)
-	println()
-	print("min … max: ") 
-	printstyled(lpad(round(firstbin; digits=6), 6); color=:green, bold=true)
-	print(" … ")
-	printstyled(lpad(round(endbin; digits=6), 6); color=:green, bold=true)
-	println()
+	if printstat
+		print("mean ± σ:  ") 
+		printstyled(lpad(round(v_mean; digits=6), 6); color=:green, bold=true)
+		print(" ± ")
+		printstyled(lpad(round(v_σ; digits=6), 6); color=:green, bold=true)
+		println()
+		print("min … max: ") 
+		printstyled(lpad(round(firstbin; digits=6), 6); color=:green, bold=true)
+		print(" … ")
+		printstyled(lpad(round(endbin; digits=6), 6); color=:green, bold=true)
+		println()
+	end
 	v_mean, v_σ, firstbin, endbin
 end
 
