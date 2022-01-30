@@ -4,7 +4,7 @@ using Formatting
 
 export histogram
 
-function histogram(values; width=64, height=3)
+function histogram(values; width=64, height=3, title="")
 	ϵ = 1e-11
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
@@ -29,6 +29,8 @@ function histogram(values; width=64, height=3)
 		strength = bin / (maxbin + ϵ)* size(histbin_codes,1)
 		unicode_matrix[i, :] .= histbin_codes[floor(Int, strength)+1,:]
 	end
+
+	title !=="" && printstyled(" " ^ max(0,cld((width-length(title)),2)),title,"\n"; bold=true)
 	for h in 1:height 	
 		println(join(unicode_matrix[:,h],""))
 	end
