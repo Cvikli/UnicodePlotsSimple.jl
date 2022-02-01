@@ -32,18 +32,23 @@ function histogram(values; width=64, height=3, title="", printstat=true)
 	for h in 1:height 	
 		println(join(unicode_matrix[:,h],""))
 	end
+	printstyled(round(firstbin; digits=6), bold=true)
+	sign_width = (sign(firstbin) < 0 ? 1 : 0) + (sign(endbin) < 0 ? 1 : 0)
+	print(" "^(width-14-Int(ceil(log10(abs(firstbin)))+ceil(log10(abs(endbin))))- sign_width))
+	printstyled(round(endbin; digits=6), bold=true)
+	println()
 	v_mean = sum(values) / length(values)
 	v_σ = sqrt(sum((values .- v_mean).^2) / (length(values) - 1))
 	if printstat
-		print("mean ± σ:  ") 
+		print("Values (mean ± σ): ") 
 		printstyled(lpad(round(v_mean; digits=6), 6); color=:green, bold=true)
 		print(" ± ")
 		printstyled(lpad(round(v_σ; digits=6), 6); color=:green, bold=true)
 		println()
-		print("min … max: ") 
-		printstyled(lpad(round(firstbin; digits=6), 6); color=:green, bold=true)
-		print(" … ")
-		printstyled(lpad(round(endbin; digits=6), 6); color=:green, bold=true)
+		# print("Range (min … max): ") 
+		# printstyled(lpad(round(firstbin; digits=6), 6); color=:green, bold=true)
+		# print(" … ")
+		# printstyled(lpad(round(endbin; digits=6), 6); color=:green, bold=true)
 		println()
 	end
 	v_mean, v_σ, firstbin, endbin
