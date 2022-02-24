@@ -1,8 +1,54 @@
 module UnicodeHistogram
 
 export histogram
+export distribution
+
+function distribution(probs; height=3, values=[])
+	ϵ = 1e-11
+	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
+	blocknum = length(histbars_blocks)
+	histbin_codes = fill('█',(blocknum-1)*height, height)
+	for h in 1:height
+		histbin_codes[(h-1)*(blocknum-1)+1:h*(blocknum-1),height-h+1] .= histbars_blocks[2:end]
+	end
+	histbin_codes[map(ci -> cld(ci[1],blocknum-1)+ci[2]<=height,CartesianIndices(histbin_codes))].= ' '
+
+
+	maxheight = maximum(probs)
+
+
+	unicode_matrix = Matrix{Char}(undef, length(probs), height)
+	for (i,bin) in enumerate(probs)
+		strength = bin / (maxheight + ϵ) * size(histbin_codes,1)
+		unicode_matrix[i, :] .= histbin_codes[floor(Int, strength)+1,:]
+	end
+	v_mean = sum(probs) / length(probs)
+	v_σ = sqrt(sum((probs .- v_mean).^2) / (length(probs) - 1))
+	v_min = minimum(probs)
+	v_max = maximum(probs)
+	for h in 1:height 	
+		print(join(unicode_matrix[:,h],""))
+		if h==height-2 && length(values)>0
+			print("  values:    ") 
+			printstyled(join(values,", "); color=:green, bold=true)
+		elseif h==height-1
+			print("  mean ± σ:  ") 
+			printstyled(lpad(round(v_mean; digits=6), 6); color=:green, bold=true)
+			print(" ± ")
+			printstyled(lpad(round(v_σ; digits=6), 6); color=:green, bold=true)
+		elseif h==height
+			print("  min … max: ") 
+			printstyled(lpad(round(v_min; digits=6), 7); color=:green, bold=true)
+			print(" … ")
+			printstyled(rpad(round(v_max; digits=6), 6); color=:green, bold=true)
+		end
+		println()
+	end
+end
+
 
 function histogram(values; width=64, height=3, title="", printstat=true)
+	length(values) == 0 && (println("Empty histogram"); return)
 	ϵ = 1e-11
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)

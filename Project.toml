@@ -1,4 +1,4 @@
 name = "UnicodeHistogram"
 uuid = "00983533-20a1-4a26-bd63-e4730e7787b3"
 authors = ["Marcell <havlikmarcell@gmail.com>"]
-version = "0.5.0"
+version = "0.8.0"
