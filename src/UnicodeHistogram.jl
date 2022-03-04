@@ -12,38 +12,42 @@ end
 function heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false) 
 	ϵ = 1e-11
 	scale = 0:5:255
-	charts = length(xy)
+	charts_num = length(xy)
 	width, height = size(xy[1])
-	unicode_matrix = Array{UInt8,3}(undef, width, height, charts)	
-	maxstrength = maximum(vcat(xy...))
-	minstrength = minimum(vcat(xy...))
-	for c in 1:charts
-		for xi in size(xy[c],1)
-			for yi in size(xy[c],2)
+	unicode_matrix = Array{UInt8,3}(undef, width, height, charts_num)	
+	extremas = []
+	for c in 1:charts_num
+		minstrength, maxstrength = extrema(xy[c])
+		push!(extremas, (minstrength, maxstrength))
+		for xi in 1:size(xy[c],1)
+			for yi in 1:size(xy[c],2)
 				strength = (xy[c][xi,yi]-minstrength) / (maxstrength-minstrength + ϵ) * length(scale)
-				unicode_matrix[xi,yi,c] = scale[floor(Int, strength)+1]
+				unicode_matrix[xi,yi,c] = convert(UInt, scale[floor(Int, strength)+1])
 			end
 		end
 	end
-	
-	length(title)!= 0 && (print(" ");for c in 1:charts
+
+	length(title)!= 0 && (print(" ");for c in 1:charts_num
 		print(cpad(title[c],2*length(xticks)))
 		print(" ")
 	end;
+	print(" " ^ (width-1),"min   …    max ");
 	println())
 	for h in 1:height 	
 		length(yticks) != 0 && print(yticks[reversey ? height+1-h : h])
-		for c in 1:charts
+		for c in 1:charts_num
 			for w in 1:width 	
 				print(Crayon(; foreground = (255, unicode_matrix[w,reversey ? height+1-h : h,c], 0)),"██", Crayon(reset=true))
 			end
 			print(" ")
 		end
+		length(extremas) >= h && print(" ",lpad(round(extremas[h][1]; digits=6), 8)," … ",lpad(round(extremas[h][2]; digits=8), 6))
 		println()
 	end
-	length(xticks) != 0 && (print(" ");for c in 1:charts 
-	 for w in 1:width print(lpad(xticks[w],2)) end ; print(" ")
-end)
+	length(xticks) != 0 && (print("");
+	for c in 1:charts_num 
+		for w in 1:width print(lpad(xticks[w],2)) end ; print(" ")
+	end)
 	println()
 end
 
