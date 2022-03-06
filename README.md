@@ -1,24 +1,32 @@
-# HistogramUnicode
-Very simple vertical unicode histogram print in console. 
+# UnicodePlotsSimple
+- Very simple vertical unicode histogram
+- Very simple unicode heatmap
+- Very simple unicode distribution 
+
+
+# WHY
+Plotting helps you to understand the underlying data. For me I needed to plot relative differences of values, distribution of values in a vector{Float32}, relative differences of matrix values and finally I had to 3-5 times multiple matrix relative differences in the appropriate matrix (Dict{...,Vector{Matrix{Float32}}}). 
+
+Fork it an use it as you prefer
 
 # Example
 Code:
 ```
-using UnicodeHistogram
+include("../src/UnicodePlotsSimple.jl")
+using .UnicodePlotsSimple
 
-values = randn(10000)
-histogram(values, width=64, height=3, title="Random num generation histrogram", printstat=true)
+randss = randn(1000).+2
+histogram(randss, width=64, height=3)
+histogram(randss, width=100, height=5, title="Random num generation histrogram", printstat=true)
+
+
+distribution([0.3,0.2334,0.1,0.8], height=3, values=[0.3,0.2334,0.1,0.8])
+dat = [randn(5,5),randn(5,5),randn(5,5)]
+heatmap(dat,title=["first", "s2ec", "323c"], xticks=[1,2,2,2,3], yticks=[1,2,2,5,3])
 ```
-Result:
-```
-                Random num generation histrogram
-                        ▁▁▄▄▇▆▆█▆▇▆▅▄▅▂                         
-                   ▁▂▃▆▅████████████████▅▄▃▁                    
-▁▁▁▁▁▁▁▁▁▁▁▁▂▂▃▄▄▆▇██████████████████████████▆▆▅▃▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁
-mean ± σ:  0.004896 ± 0.994497
-min … max: -3.841103 … 3.888435
-(0.00489639274142397, 0.9944966803826039, -3.8411032325852648, 3.8884348308574825)
-```
+![test.jl example](/assets/images/test.jl.example.png)
+
+Use it as you prefer. :)
 
 # TODO
 Searching for a finer detailed building block than: " ▁▂▃▄▅▆▇█"
