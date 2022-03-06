@@ -95,9 +95,10 @@ function distribution(probs; height=3, values=[])
 end
 
 
-function histogram(values; width=64, height=3, title="", printstat=true)
+function histogram(values; width=64, height=3, title="", printstat=true, reversescale=false, line1="", line2="", line3="")
 	ϵ = 1e-11
-	length(values) == 0 && (println("Empty histogram"); return)
+	title !=="" && printstyled(" " ^ max(0,cld((width-length(title)),2)),title,"\n"; bold=true)
+	length(values) == 0 && (println("$line1 --------Empty histogram------- "); return)
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
 	histbin_codes = fill('█',(blocknum-1)*height, height)
@@ -122,22 +123,37 @@ function histogram(values; width=64, height=3, title="", printstat=true)
 		unicode_matrix[i, :] .= histbin_codes[floor(Int, strength)+1,:]
 	end
 
-	title !=="" && printstyled(" " ^ max(0,cld((width-length(title)),2)),title,"\n"; bold=true)
 	for h in 1:height 	
-		println(join(unicode_matrix[:,h],""))
+		if reversescale == false
+			print(join(unicode_matrix[:,h],""))
+		else
+			print(join(unicode_matrix[end:-1:1,h],""))
+		end
+		if h==1
+      print(" ",line1)
+		elseif h==2
+      print(" ",line2)
+		elseif h==3
+      print(" ",line3)
+		end
+		println()
+	end
+	if reversescale 
+		firstbin, endbin = endbin, firstbin
 	end
 	printstyled(round(firstbin; digits=6), bold=true)
 	sign_width = (sign(firstbin) < 0 ? 1 : 0) + (sign(endbin) < 0 ? 1 : 0)
 	print(" "^(width-14-Int(ceil(log10(abs(firstbin)))+ceil(log10(abs(endbin))))- sign_width))
 	printstyled(round(endbin; digits=6), bold=true)
-	println()
+	# println()
 	v_mean = sum(values) / length(values)
-	v_σ = sqrt(sum((values .- v_mean).^2) / (length(values) - 1))
+	v_σ = sqrt(sum((values .- v_mean).^2) / length(values))
 	if printstat
-		print("Values (mean ± σ): ") 
-		printstyled(lpad(round(v_mean; digits=6), 6); color=:green, bold=true)
+		print(" ")
+		print("Mean ± σ: ") 
+		printstyled(lpad(round(v_mean; digits=5), 6); color=:green, bold=true)
 		print(" ± ")
-		printstyled(lpad(round(v_σ; digits=6), 6); color=:green, bold=true)
+		printstyled(lpad(round(v_σ; digits=4), 6); color=:green, bold=true)
 		println()
 		# print("Range (min … max): ") 
 		# printstyled(lpad(round(firstbin; digits=6), 6); color=:green, bold=true)
