@@ -97,8 +97,7 @@ end
 
 function histogram(values; width=64, height=3, title="", printstat=true, reversescale=false, line1="", line2="", line3="")
 	ϵ = 1f-5
-	title !=="" && printstyled(" " ^ max(0,cld((width-length(title)),2)),title,"\n"; bold=true)
-	length(values) == 0 && (println("$line1 --------Empty histogram------- "); return)
+	length(values) == 0 && (println("$title  $line1  $line2 ---Empty histogram--- "); return)
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
 	histbin_codes = fill('█',(blocknum-1)*height, height)
@@ -123,6 +122,7 @@ function histogram(values; width=64, height=3, title="", printstat=true, reverse
 		unicode_matrix[i, :] .= histbin_codes[floor(Int, strength)+1,:]
 	end
 
+	title !=="" && printstyled(" " ^ max(0,cld((width-length(title)),2)),title,"\n"; bold=true)
 	for h in 1:height 	
 		if reversescale == false
 			print(join(unicode_matrix[:,h],""))
