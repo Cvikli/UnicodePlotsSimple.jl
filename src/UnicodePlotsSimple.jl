@@ -1,4 +1,4 @@
-module UnicodeHistogram
+module UnicodePlotsSimple
 
 using Crayons
 export histogram
@@ -96,7 +96,7 @@ end
 
 
 function histogram(values; width=64, height=3, title="", printstat=true, reversescale=false, line1="", line2="", line3="")
-	ϵ = 1e-11
+	ϵ = 1f-5
 	title !=="" && printstyled(" " ^ max(0,cld((width-length(title)),2)),title,"\n"; bold=true)
 	length(values) == 0 && (println("$line1 --------Empty histogram------- "); return)
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
