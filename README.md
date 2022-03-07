@@ -29,7 +29,7 @@ heatmap(data,title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, revers
 densitymap(data, desnitry, format=Val(:NUMBER), title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
 densitymap(data, desnitry, format=Val(:DENSITY), title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
 ```
-![test.jl example](/assets/test.jl.example.2022.03.07.png)
+![test.jl example](/assets/test.jl.example.2022.03.06.22:00.png)
 
 Use it as you prefer. :)
 
