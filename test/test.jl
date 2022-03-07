@@ -1,3 +1,4 @@
+using RelevanceStacktrace
 using Revise
 
 includet("../src/UnicodePlotsSimple.jl")
@@ -14,9 +15,9 @@ distribution([0.3,0.2334,0.1,0.8], height=3, values=[0.3,0.2334,0.1,0.8])
 dat = [randn(5,5),randn(5,5),randn(5,5)]
 heatmap(dat,title=["first", "s2ec", "323c"], xticks=[1,2,2,2,3], yticks=[1,2,2,5,3])
 
-
+#%%
 desnitry = [rand(1:150,5,5),rand(1:350,5,5),rand(1:10,5,5)]
-densitymap(dat, desnitry, format=Val(:NUMBER),
+densitymap(dat, desnitry, format=Val(:DENSITY),
 title=["first", "s2ec", "323c"], xticks=[1,2,2,2,3], yticks=[1,2,2,5,3])
 
 #%%

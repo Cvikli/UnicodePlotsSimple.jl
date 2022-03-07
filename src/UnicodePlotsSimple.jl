@@ -9,11 +9,13 @@ export densitymap
 cpad(s, n::Integer, p=" ") = rpad(lpad(s,div(n+length(s),2),p),n,p)
 
 marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(min(cases[c][x, y],99),0)),2) 
-marker(format::Val{:DENSITY}, cases, x,y,c) = ["  ", "░░", "▒▒", "▓▓", "██"][cases[x, y,c]]
+marker(format::Val{:DENSITY}, cases, x,y,c) = ["  ", "░░", "▒▒", "▓▓", "██"][cases[c][x, y]]
 marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
 
 marketcolor(format::Val{:DENSITY}, c) = c 
 marketcolor(format, x) = (0,0,0) 
+marketcolor_bg(format::Val{:DENSITY}, c) = (20,20,20)  
+marketcolor_bg(format, c) = c
 
 heatmap(xy::Matrix; title=[], xticks=[], yticks=[], reversey=false) = heatmap([xy], title=title, xticks=xticks, yticks=yticks, reversey=reversey) 
 heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false) = heatmap(xy,title,xticks,yticks,reversey)
@@ -23,7 +25,8 @@ end
 
 
 densitymap(xy::Matrix, case::Matrix; title=[], xticks=[], yticks=[], format=Val(:HEATMAP)) = densitymap([xy], [case], title=title, xticks=xticks, yticks=yticks) 
-densitymap(xy::Vector, cases; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = densitymap(xy,cases,title,xticks,yticks,reversey,format)
+densitymap(xy::Vector, cases; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = 
+densitymap(xy,cases,title,xticks,yticks,reversey,format)
 function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reversey, format) where T
 	ϵ = 1e-11
 	scale = 0:5:255
@@ -49,14 +52,19 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	end;
 	print(" " ^ (width-1),"min   …    max ");
 	println())
+	maxcase = maximum(maximum.(cases))
+	scaled_cases = [floor.(Int, case_m ./ (maxcase + ϵ) * 5) .+ 1 for case_m in cases]
+
 	for h in 1:height 	
 		length(yticks) != 0 && print(yticks[reversey ? height+1-h : h])
 		for c in 1:charts_num
 			for w in 1:width 	
-				m = marker(format, cases, w,reversey ? height+1-h : h,c)
+				# @show h,c,w, height
+				m = marker(format, scaled_cases, w,reversey ? height+1-h : h,c, )
 				rgb=(255, unicode_matrix[w,reversey ? height+1-h : h,c], 0)
-				fore_rgb = marketcolor(format,rgb)
-				print(Crayon(; background = rgb,  foreground = fore_rgb),m, Crayon(reset=true))
+				fore_rgb = marketcolor(format, rgb)
+				back_rgb = marketcolor_bg(format, rgb)
+				print(Crayon(; background = back_rgb,  foreground = fore_rgb), m, Crayon(reset=true))
 			end
 			print(" ")
 		end
