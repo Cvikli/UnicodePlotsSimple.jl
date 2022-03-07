@@ -1,6 +1,8 @@
 module UnicodePlotsSimple
 
 using Crayons
+using InteractiveUtils
+
 export histogram
 export distribution
 export heatmap
@@ -8,14 +10,14 @@ export densitymap
 
 cpad(s, n::Integer, p=" ") = rpad(lpad(s,div(n+length(s),2),p),n,p)
 
-marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(min(cases[c][x, y],99),0)),2) 
-marker(format::Val{:DENSITY}, cases, x,y,c) = ["  ", "░░", "▒▒", "▓▓", "██"][cases[c][x, y]]
+marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
+marker(format::Val{:DENSITY}, cases, x,y,c) = ["░░", "▒▒", "▓▓", "██"][cases[c][x, y]]
+░░▒▒▓▓
 marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
 
-marketcolor(format::Val{:DENSITY}, c) = c 
-marketcolor(format, x) = (0,0,0) 
-marketcolor_bg(format::Val{:DENSITY}, c) = (20,20,20)  
-marketcolor_bg(format, c) = c
+markercolor(format::Val{:NUMBER}, c) = Crayon(;background=c,foreground=(0,0,0) )
+markercolor(format::Val{:DENSITY}, c) = Crayon(;foreground=c)
+markercolor(format::Val{:HEATMAP}, c) = Crayon(;background=c)
 
 heatmap(xy::Matrix; title=[], xticks=[], yticks=[], reversey=false) = heatmap([xy], title=title, xticks=xticks, yticks=yticks, reversey=reversey) 
 heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false) = heatmap(xy,title,xticks,yticks,reversey)
@@ -52,8 +54,13 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	end;
 	print(" " ^ (width-1),"min   …    max ");
 	println())
-	maxcase = maximum(maximum.(cases))
-	scaled_cases = [floor.(Int, case_m ./ (maxcase + ϵ) * 5) .+ 1 for case_m in cases]
+
+	if isa(format, Val{:DENSITY})
+		maxcase = maximum.(cases)
+		scaled_cases = [floor.(Int, case_m ./ (maxcase[c] + ϵ) * 4) .+ 1 for (c,case_m) in enumerate(cases)]
+	else
+		scaled_cases = cases
+	end
 
 	for h in 1:height 	
 		length(yticks) != 0 && print(yticks[reversey ? height+1-h : h])
@@ -62,9 +69,8 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 				# @show h,c,w, height
 				m = marker(format, scaled_cases, w,reversey ? height+1-h : h,c, )
 				rgb=(255, unicode_matrix[w,reversey ? height+1-h : h,c], 0)
-				fore_rgb = marketcolor(format, rgb)
-				back_rgb = marketcolor_bg(format, rgb)
-				print(Crayon(; background = back_rgb,  foreground = fore_rgb), m, Crayon(reset=true))
+				cray_col = markercolor(format, rgb)
+				print(cray_col, m, Crayon(reset=true))
 			end
 			print(" ")
 		end
