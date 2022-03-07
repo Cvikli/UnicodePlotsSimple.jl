@@ -1,7 +1,7 @@
 # UnicodePlotsSimple
 Simple unicode plotting. 
 - Very simple unicode distribution 
-- Very simple vertical unicode histogram
+- Very simple unicode vertical histogram
 - Very simple unicode heatmap
 - Very simple unicode densitymap 
 
