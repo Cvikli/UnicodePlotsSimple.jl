@@ -14,8 +14,8 @@ Fork it an use it as you prefer
 # Example
 Code:
 ```
-include("../src/UnicodePlotsSimple.jl")
-using .UnicodePlotsSimple
+import Pkg; Pkg.add(url="https://github.com/Cvikli/UnicodePlotsSimple.jl")
+using UnicodePlotsSimple
 
 distribution([0.3,0.2334,0.1,0.8], height=3, values=[0.3,0.2334,0.1,0.8])
 

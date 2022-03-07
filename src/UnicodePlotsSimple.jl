@@ -12,7 +12,6 @@ cpad(s, n::Integer, p=" ") = rpad(lpad(s,div(n+length(s),2),p),n,p)
 
 marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
 marker(format::Val{:DENSITY}, cases, x,y,c) = ["░░", "▒▒", "▓▓", "██"][cases[c][x, y]]
-░░▒▒▓▓
 marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
 
 markercolor(format::Val{:NUMBER}, c) = Crayon(;background=c,foreground=(0,0,0) )
