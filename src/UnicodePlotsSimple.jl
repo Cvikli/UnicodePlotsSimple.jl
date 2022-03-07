@@ -4,18 +4,34 @@ using Crayons
 export histogram
 export distribution
 export heatmap
+export densitymap
 
 cpad(s, n::Integer, p=" ") = rpad(lpad(s,div(n+length(s),2),p),n,p)
-function heatmap(xy::Matrix; title=[], xticks=[], yticks=[]) 
-	heatmap([xy], title=title, xticks=xticks, yticks=yticks) 
+
+marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(min(cases[c][x, y],99),0)),2) 
+marker(format::Val{:DENSITY}, cases, x,y,c) = ["  ", "░░", "▒▒", "▓▓", "██"][cases[x, y,c]]
+marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
+
+marketcolor(format::Val{:DENSITY}, c) = c 
+marketcolor(format, x) = (0,0,0) 
+
+heatmap(xy::Matrix; title=[], xticks=[], yticks=[], reversey=false) = heatmap([xy], title=title, xticks=xticks, yticks=yticks, reversey=reversey) 
+heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false) = heatmap(xy,title,xticks,yticks,reversey)
+function heatmap(xy::Vector, title, xticks, yticks, reversey) 
+	densitymap(xy, nothing, title, xticks, yticks, reversey, Val(:HEATMAP))
 end
-function heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false) 
+
+
+densitymap(xy::Matrix, case::Matrix; title=[], xticks=[], yticks=[], format=Val(:HEATMAP)) = densitymap([xy], [case], title=title, xticks=xticks, yticks=yticks) 
+densitymap(xy::Vector, cases; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = densitymap(xy,cases,title,xticks,yticks,reversey,format)
+function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reversey, format) where T
 	ϵ = 1e-11
 	scale = 0:5:255
 	charts_num = length(xy)
 	width, height = size(xy[1])
+	# freq_matrix = Array{Int,3}(undef, width, height, charts_num)	
 	unicode_matrix = Array{UInt8,3}(undef, width, height, charts_num)	
-	extremas = []
+	extremas = Tuple{T,T}[]
 	for c in 1:charts_num
 		minstrength, maxstrength = extrema(xy[c])
 		push!(extremas, (minstrength, maxstrength))
@@ -37,7 +53,10 @@ function heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false)
 		length(yticks) != 0 && print(yticks[reversey ? height+1-h : h])
 		for c in 1:charts_num
 			for w in 1:width 	
-				print(Crayon(; foreground = (255, unicode_matrix[w,reversey ? height+1-h : h,c], 0)),"██", Crayon(reset=true))
+				m = marker(format, cases, w,reversey ? height+1-h : h,c)
+				rgb=(255, unicode_matrix[w,reversey ? height+1-h : h,c], 0)
+				fore_rgb = marketcolor(format,rgb)
+				print(Crayon(; background = rgb,  foreground = fore_rgb),m, Crayon(reset=true))
 			end
 			print(" ")
 		end
@@ -51,7 +70,8 @@ function heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false)
 	println()
 end
 
-function distribution(probs; height=3, values=[])
+distribution(probs; height=3, values=[]) = distribution(probs, height, values) 
+function distribution(probs, height, values)
 	ϵ = 1e-11
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
@@ -94,9 +114,9 @@ function distribution(probs; height=3, values=[])
 	end
 end
 
-
-function histogram(values; width=64, height=3, title="", printstat=true, reversescale=false, line1="", line2="", line3="")
-	ϵ = 1f-5
+histogram(values; width=64, height=3, title="", printstat=true, reversescale=false, line1="", line2="", line3="") = histogram(values, width, height, title, printstat, reversescale, line1, line2, line3)
+function histogram(values, width, height, title, printstat, reversescale, line1, line2, line3)
+	ϵ = eps(eltype(values))
 	length(values) == 0 && (println("$title  $line1  $line2 ---Empty histogram--- "); return)
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
@@ -109,17 +129,17 @@ function histogram(values; width=64, height=3, title="", printstat=true, reverse
 	# 	println(join(histbin_codes[:,h],"")," █")
 	# end
 	firstbin = minimum(values)
-	endbin = maximum(values) + ϵ
-	binsize = (endbin - firstbin) / width 
+	endbin = maximum(values) 
+	binsize = (endbin - firstbin) / width + ϵ
 	histogram_bins = zeros(Int, width)
 	for v in values
-		histogram_bins[floor(Int,(v-firstbin) / binsize) + 1] += 1 
+		histogram_bins[floor(Int,(v-firstbin) / binsize)+1] += 1 
 	end
 	maxbin = maximum(histogram_bins) 
 	unicode_matrix = Matrix{Char}(undef, width, height)
 	for (i,bin) in enumerate(histogram_bins)
-		strength = bin / (maxbin + ϵ)* size(histbin_codes,1)
-		unicode_matrix[i, :] .= histbin_codes[floor(Int, strength)+1,:]
+		strength = floor(Int, bin / (maxbin * (1 + ϵ))* size(histbin_codes,1))  
+		unicode_matrix[i, :] .= histbin_codes[strength+1,:]
 	end
 
 	title !=="" && printstyled(" " ^ max(0,cld((width-length(title)),2)),title,"\n"; bold=true)
@@ -141,10 +161,11 @@ function histogram(values; width=64, height=3, title="", printstat=true, reverse
 	if reversescale 
 		firstbin, endbin = endbin, firstbin
 	end
-	printstyled(round(firstbin; digits=6), bold=true)
-	sign_width = (sign(firstbin) < 0 ? 1 : 0) + (sign(endbin) < 0 ? 1 : 0)
-	print(" "^(width-14-Int(ceil(log10(abs(firstbin)))+ceil(log10(abs(endbin))))- sign_width))
-	printstyled(round(endbin; digits=6), bold=true)
+	printstyled(lpad(round(firstbin; digits=6),12), bold=true)
+	# sign_width = (sign(firstbin) < 0 ? 1 : 0) + (sign(endbin) < 0 ? 1 : 0)
+	# print(" "^(width-14-Int(ceil(log10(abs(firstbin)))+ceil(log10(abs(endbin))))- sign_width))
+	print(" "^(width-24))
+	printstyled(rpad(round(endbin; digits=6),12), bold=true)
 	# println()
 	v_mean = sum(values) / length(values)
 	v_σ = sqrt(sum((values .- v_mean).^2) / length(values))
@@ -153,7 +174,7 @@ function histogram(values; width=64, height=3, title="", printstat=true, reverse
 		print("Mean ± σ: ") 
 		printstyled(lpad(round(v_mean; digits=5), 6); color=:green, bold=true)
 		print(" ± ")
-		printstyled(lpad(round(v_σ; digits=4), 6); color=:green, bold=true)
+		printstyled(round(v_σ; digits=4); color=:green, bold=true)
 		println()
 		# print("Range (min … max): ") 
 		# printstyled(lpad(round(firstbin; digits=6), 6); color=:green, bold=true)
@@ -161,7 +182,8 @@ function histogram(values; width=64, height=3, title="", printstat=true, reverse
 		# printstyled(lpad(round(endbin; digits=6), 6); color=:green, bold=true)
 		println()
 	end
-	v_mean, v_σ, firstbin, endbin
+	# v_mean, v_σ, firstbin, endbin
+	return
 end
 
 function histogramdetailed(values, width=64, height=3)
