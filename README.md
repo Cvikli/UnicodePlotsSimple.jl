@@ -1,15 +1,11 @@
 # UnicodePlotsSimple
+Simple unicode plotting. 
 - Very simple unicode distribution 
 - Very simple vertical unicode histogram
 - Very simple unicode heatmap
 - Very simple unicode densitymap 
 
 I love the simple "flat" programming style in Julia. (I believe it was way overstated in C++ and this is much easier to understand.)
-
-# WHY
-Plotting helps you to understand the underlying data. For me I needed to plot relative differences of values, distribution of values in a vector{Float32}, relative differences of matrix values and finally I had to 3-5 times multiple matrix relative differences in the appropriate matrix (Dict{...,Vector{Matrix{Float32}}}). 
-
-Fork it an use it as you prefer
 
 # Example
 Code:
@@ -42,5 +38,13 @@ Searching for a finer detailed building block:
  - " ▁▂▃▄▅▆▇█"
  - "  ░░▒▒▓▓██"
 
+# Inspired by: 
+- https://github.com/JuliaCI/BenchmarkTools.jl#quick-start Vertical histogram
+- https://github.com/JuliaPlots/UnicodePlots.jl Heatmap + Densitymap
 
-Inspired by: https://github.com/JuliaCI/BenchmarkTools.jl#quick-start
+# WHY
+Plotting helps you to understand the underlying data. For me I needed to plot relative differences of values, distribution of values in a vector{Float32}, relative differences of matrix values and finally I had to 3-5 times multiple matrix relative differences in the appropriate matrix (Dict{...,Vector{Matrix{Float32}}})... aaaaaand with some frequency number/density "feeling" of the data. 
+
+The code is super simple, fork it an use it as you prefer!
+
+Unicode plots should be small and beautiful! :)

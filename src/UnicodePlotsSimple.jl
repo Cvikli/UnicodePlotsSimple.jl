@@ -13,7 +13,7 @@ marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) >
 marker(format::Val{:DENSITY}, cases, x,y,c) = ["░░", "▒▒", "▓▓", "██"][cases[c][x, y]]
 marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
 
-markercolor(format::Val{:NUMBER}, c) = Crayon(;background=c,foreground=(0,0,0) )
+markercolor(format::Val{:NUMBER}, c) = Crayon(;background=c,foreground=(33,33,33), bold=true)
 markercolor(format::Val{:DENSITY}, c) = Crayon(;foreground=c)
 markercolor(format::Val{:HEATMAP}, c) = Crayon(;background=c)
 
@@ -28,7 +28,7 @@ densitymap(xy::Matrix, case::Matrix; title=[], xticks=[], yticks=[], format=Val(
 densitymap(xy::Vector, cases; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = 
 densitymap(xy,cases,title,xticks,yticks,reversey,format)
 function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reversey, format) where T
-	ϵ = 1e-11
+	ϵ = eps(eltype(xy[1]))
 	scale = 0:5:255
 	charts_num = length(xy)
 	width, height = size(xy[1])
@@ -40,7 +40,7 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 		push!(extremas, (minstrength, maxstrength))
 		for xi in 1:size(xy[c],1)
 			for yi in 1:size(xy[c],2)
-				strength = (xy[c][xi,yi]-minstrength) / (maxstrength-minstrength + ϵ) * length(scale)
+				strength = (xy[c][xi,yi]-minstrength) / ((maxstrength-minstrength) * (1+ϵ)) * length(scale)
 				unicode_matrix[xi,yi,c] = convert(UInt, scale[floor(Int, strength)+1])
 			end
 		end
@@ -55,7 +55,7 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 
 	if isa(format, Val{:DENSITY})
 		maxcase = maximum.(cases)
-		scaled_cases = [floor.(Int, case_m ./ (maxcase[c] + ϵ) * 4) .+ 1 for (c,case_m) in enumerate(cases)]
+		scaled_cases = [floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 4) .+ 1 for (c,case_m) in enumerate(cases)]
 	else
 		scaled_cases = cases
 	end
@@ -72,7 +72,11 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 			end
 			print(" ")
 		end
-		length(extremas) >= h && print(" ",lpad(round(extremas[h][1]; digits=6), 8)," … ",lpad(round(extremas[h][2]; digits=8), 6))
+		
+		length(extremas) >= h && (print(" ");
+		printstyled(lpad(round(extremas[h][1]; digits=6), 8); color=:green, bold=true);
+		print(" … "); 
+		printstyled(lpad(round(extremas[h][2]; digits=8), 6); color=:green, bold=true))
 		println()
 	end
 	length(xticks) != 0 && (print("");
@@ -84,7 +88,7 @@ end
 
 distribution(probs; height=3, values=[]) = distribution(probs, height, values) 
 function distribution(probs, height, values)
-	ϵ = 1e-11
+	ϵ = eps(eltype(probs))
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
 	histbin_codes = fill('█',(blocknum-1)*height, height)
