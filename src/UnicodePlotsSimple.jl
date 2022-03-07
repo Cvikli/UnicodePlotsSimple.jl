@@ -1,7 +1,6 @@
 module UnicodePlotsSimple
 
 using Crayons
-using InteractiveUtils
 
 export histogram
 export distribution
