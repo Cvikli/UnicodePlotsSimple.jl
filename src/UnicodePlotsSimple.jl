@@ -38,7 +38,7 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	for c in 1:charts_num
 		minstrength, maxstrength = extrema(xy[c])
 		if minstrength == maxstrength
-			unicode_matrix[:,:,c] .= Uint8(0) 
+			unicode_matrix[:,:,c] .= UInt8(0) 
 		else
 			push!(extremas, (minstrength, maxstrength))
 			for xi in 1:size(xy[c],1)
@@ -154,7 +154,7 @@ function histogram(values, width, height, title, printstat, reversescale, line1,
 	# end
 	firstbin = minimum(values)
 	endbin = maximum(values) 
-	binsize = (endbin - firstbin) / (width * (1 + ϵ))
+	binsize = (endbin - firstbin) / width * (1 + ϵ)
 	histogram_bins = zeros(Int, width)
 	for v in values
 		histogram_bins[floor(Int,(v-firstbin) / binsize)+1] += 1 
