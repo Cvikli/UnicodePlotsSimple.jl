@@ -37,11 +37,15 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	extremas = Tuple{T,T}[]
 	for c in 1:charts_num
 		minstrength, maxstrength = extrema(xy[c])
-		push!(extremas, (minstrength, maxstrength))
-		for xi in 1:size(xy[c],1)
-			for yi in 1:size(xy[c],2)
-				strength = (xy[c][xi,yi]-minstrength) / ((maxstrength-minstrength) * (1+ϵ)) * length(scale)
-				unicode_matrix[xi,yi,c] = convert(UInt, scale[floor(Int, strength)+1])
+		if minstrength == maxstrength
+			unicode_matrix[:,:,c] .= Uint8(0) 
+		else
+			push!(extremas, (minstrength, maxstrength))
+			for xi in 1:size(xy[c],1)
+				for yi in 1:size(xy[c],2)
+					strength = (xy[c][xi,yi]-minstrength) / ((maxstrength-minstrength) * (1+ϵ)) * length(scale)
+					unicode_matrix[xi,yi,c] = convert(UInt, scale[floor(Int, strength)+1])
+				end
 			end
 		end
 	end
@@ -55,7 +59,11 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 
 	if isa(format, Val{:DENSITY})
 		maxcase = maximum.(cases)
-		scaled_cases = [floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 4) .+ 1 for (c,case_m) in enumerate(cases)]
+		if maxcase == 0
+			scaled_cases = zeros.(Int, cases)
+		else
+			scaled_cases = [floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 4) .+ 1 for (c,case_m) in enumerate(cases)]
+		end
 	else
 		scaled_cases = cases
 	end
