@@ -111,7 +111,7 @@ function distribution(probs, height, values)
 
 	unicode_matrix = Matrix{Char}(undef, length(probs), height)
 	for (i,bin) in enumerate(probs)
-		strength = bin / (maxheight + ϵ) * size(histbin_codes,1)
+		strength = bin / (maxheight *(1+ ϵ)) * size(histbin_codes,1)
 		unicode_matrix[i, :] .= histbin_codes[floor(Int, strength)+1,:]
 	end
 	v_mean = sum(probs) / length(probs)
