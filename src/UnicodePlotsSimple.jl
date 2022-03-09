@@ -154,7 +154,7 @@ function histogram(values, width, height, title, printstat, reversescale, line1,
 	# end
 	firstbin = minimum(values)
 	endbin = maximum(values) 
-	binsize = (endbin - firstbin) / width + ϵ
+	binsize = (endbin - firstbin) / (width * (1 + ϵ))
 	histogram_bins = zeros(Int, width)
 	for v in values
 		histogram_bins[floor(Int,(v-firstbin) / binsize)+1] += 1 
