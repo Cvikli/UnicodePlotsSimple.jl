@@ -37,10 +37,10 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	extremas = Tuple{T,T}[]
 	for c in 1:charts_num
 		minstrength, maxstrength = extrema(xy[c])
+		push!(extremas, (minstrength, maxstrength))
 		if minstrength == maxstrength
 			unicode_matrix[:,:,c] .= UInt8(0) 
 		else
-			push!(extremas, (minstrength, maxstrength))
 			for xi in 1:size(xy[c],1)
 				for yi in 1:size(xy[c],2)
 					strength = (xy[c][xi,yi]-minstrength) / ((maxstrength-minstrength) * (1+ϵ)) * length(scale)
@@ -154,7 +154,8 @@ function histogram(values, width, height, title, printstat, reversescale, line1,
 	# end
 	firstbin = minimum(values)
 	endbin = maximum(values) 
-	binsize = (endbin - firstbin) / width * (1 + ϵ)
+	
+	binsize = firstbin == endbin ? 1. : (endbin - firstbin) / width * (1 + ϵ)
 	histogram_bins = zeros(Int, width)
 	for v in values
 		histogram_bins[floor(Int,(v-firstbin) / binsize)+1] += 1 
@@ -185,11 +186,11 @@ function histogram(values, width, height, title, printstat, reversescale, line1,
 	if reversescale 
 		firstbin, endbin = endbin, firstbin
 	end
-	printstyled(lpad(round(firstbin; digits=6),12), bold=true)
+	printstyled(rpad(round(firstbin; digits=6),12), bold=true)
 	# sign_width = (sign(firstbin) < 0 ? 1 : 0) + (sign(endbin) < 0 ? 1 : 0)
 	# print(" "^(width-14-Int(ceil(log10(abs(firstbin)))+ceil(log10(abs(endbin))))- sign_width))
 	print(" "^(width-24))
-	printstyled(rpad(round(endbin; digits=6),12), bold=true)
+	printstyled(lpad(round(endbin; digits=6),12), bold=true)
 	# println()
 	v_mean = sum(values) / length(values)
 	v_σ = sqrt(sum((values .- v_mean).^2) / length(values))
