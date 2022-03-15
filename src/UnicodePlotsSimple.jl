@@ -94,9 +94,9 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	println()
 end
 
-distribution(probs; height=3, values=[], width=0) = distribution(probs, height, values, width) 
-function distribution(probs, height, values, width)
-	width==0 && (width = length(probs))
+distribution(probs; height=3, values=[]) = distribution(probs, height, values) 
+function distribution(probs, height, values)
+	width = displaysize(stdout)[2] # terminal_width
 	ϵ = eps(eltype(probs))
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
@@ -121,21 +121,27 @@ function distribution(probs, height, values, width)
 	v_max = maximum(probs)
 	for wx in 1:width:length(probs)
 		for h in 1:height 	
-			print(join(unicode_matrix[wx:min(wx+width,end),h],""))
-			if wx>length(probs)-width && h==height-2
-				print("  mean ± σ:  ") 
-				printstyled(lpad(round(v_mean; digits=6), 8); color=:green, bold=true)
-				print(" ± ")
-				printstyled(rpad(round(v_σ; digits=6), 8); color=:green, bold=true)
-			elseif wx>length(probs)-width && h==height-1
-				print("  min … max: ") 
-				printstyled(lpad(round(v_min; digits=6), 8); color=:green, bold=true)
-				print(" … ")
-				printstyled(rpad(round(v_max; digits=6), 8); color=:green, bold=true)
-			elseif wx>length(probs)-width && h==height && length(values)>0 && length(values)<20
-				print("  values:    ") 
-				printstyled(join(values,", "); color=:green, bold=true)
-			end
+			print(join(unicode_matrix[wx:min(wx+width-1,end),h],""))
+			# if wx>length(probs)-width && size(unicode_matrix,1)- wx + 2+9+2+8+3+8 > terminal_width
+				if wx>length(probs)-width && h==height-2
+					print("  mean ± σ:  ") 
+					printstyled(lpad(round(v_mean; digits=6), 8); color=:green, bold=true)
+					print(" ± ")
+					printstyled(rpad(round(v_σ; digits=6), 8); color=:green, bold=true)
+				elseif wx>length(probs)-width && h==height-1
+					print("  min … max: ") 
+					printstyled(lpad(round(v_min; digits=6), 8); color=:green, bold=true)
+					print(" … ")
+					printstyled(rpad(round(v_max; digits=6), 8); color=:green, bold=true)
+				elseif wx>length(probs)-width && h==height && length(values)>0
+					if length(values)<20
+						print("  values:    ") 
+						printstyled(join(values,", "); color=:green, bold=true)
+					else
+						print("  values: Too many… ") 
+					end
+				end
+			# end
 			println()
 		end
 	end

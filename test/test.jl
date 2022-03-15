@@ -42,3 +42,5 @@ heatmap(data,["first", "s2ec", "323c"], [1,2,2,2,3], [1,2,2,5,3], false)
 
 #%%
 
+vv = abs.(randn(120))
+distribution(vv, height=3, values=vv)
