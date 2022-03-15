@@ -60,18 +60,10 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 
 	if isa(format, Val{:DISTRIBUTION})
 		maxcase = maximum.(cases)
-		if maxcase == 0
-			scaled_cases = zeros.(Int, cases)
-		else
-			scaled_cases = [floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 98) .+ ifelse.(case_m .> 0,1,0) for (c,case_m) in enumerate(cases)]
-		end
+		scaled_cases = [maxcase[c]>0 ? floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 98) .+ ifelse.(case_m .> 0,1,0) : zero(case_m) for (c,case_m) in enumerate(cases)]
 	elseif isa(format, Val{:DENSITY})
 		maxcase = maximum.(cases)
-		if maxcase == 0
-			scaled_cases = zeros.(Int, cases)
-		else
-			scaled_cases = [floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 4) .+ 1 for (c,case_m) in enumerate(cases)]
-		end
+		scaled_cases = [maxcase[c]>0 ? floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 4) .+ 1 : zero(case_m) for (c,case_m) in enumerate(cases)]
 	else
 		scaled_cases = cases
 	end
