@@ -10,10 +10,12 @@ export densitymap
 cpad(s, n::Integer, p=" ") = rpad(lpad(s,div(n+length(s),2),p),n,p)
 
 marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
+marker(format::Val{:DISTRIBUTION}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
 marker(format::Val{:DENSITY}, cases, x,y,c) = ["░░", "▒▒", "▓▓", "██"][cases[c][x, y]]
 marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
 
 markercolor(format::Val{:NUMBER}, c) = Crayon(;background=c,foreground=(33,33,33), bold=true)
+markercolor(format::Val{:DISTRIBUTION}, c) = Crayon(;background=c,foreground=(33,33,33), bold=true)
 markercolor(format::Val{:DENSITY}, c) = Crayon(;foreground=c)
 markercolor(format::Val{:HEATMAP}, c) = Crayon(;background=c)
 
@@ -23,8 +25,7 @@ function heatmap(xy::Vector, title, xticks, yticks, reversey)
 	densitymap(xy, nothing, title, xticks, yticks, reversey, Val(:HEATMAP))
 end
 
-
-densitymap(xy::Matrix, case::Matrix; title=[], xticks=[], yticks=[], format=Val(:HEATMAP)) = densitymap([xy], [case], title=title, xticks=xticks, yticks=yticks) 
+densitymap(xy::Matrix, case::Matrix; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = densitymap([xy], [case], title=title, xticks=xticks, yticks=yticks, reversey=reversey, format=format) 
 densitymap(xy::Vector, cases; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = 
 densitymap(xy,cases,title,xticks,yticks,reversey,format)
 function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reversey, format) where T
@@ -57,7 +58,14 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	print(" " ^ (width-1),"min   …    max ");
 	println())
 
-	if isa(format, Val{:DENSITY})
+	if isa(format, Val{:DISTRIBUTION})
+		maxcase = maximum.(cases)
+		if maxcase == 0
+			scaled_cases = zeros.(Int, cases)
+		else
+			scaled_cases = [floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 98) .+ ifelse.(case_m .> 0,1,0) for (c,case_m) in enumerate(cases)]
+		end
+	elseif isa(format, Val{:DENSITY})
 		maxcase = maximum.(cases)
 		if maxcase == 0
 			scaled_cases = zeros.(Int, cases)
