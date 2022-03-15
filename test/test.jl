@@ -5,6 +5,8 @@ includet("../src/UnicodePlotsSimple.jl")
 using .UnicodePlotsSimple
 
 distribution([0.3,0.2334,0.1,0.8], height=3, values=[0.3,0.2334,0.1,0.8])
+vv = abs.(randn(100))
+distribution(vv, height=3, values=vv, width=75)
 
 rnds = randn(1000).+2
 histogram(rnds, width=70, height=5, title="Random num generation histrogram", printstat=true)
@@ -37,3 +39,6 @@ heatmap(data,["first", "s2ec", "323c"], [1,2,2,2,3], [1,2,2,5,3], false)
 
 #%%
 @code_warntype histogram(randn(1000).+2, 80, 5, "Random num generation histrogram", true, false, "","","")
+
+#%%
+

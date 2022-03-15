@@ -94,8 +94,9 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	println()
 end
 
-distribution(probs; height=3, values=[]) = distribution(probs, height, values) 
-function distribution(probs, height, values)
+distribution(probs; height=3, values=[], width=0) = distribution(probs, height, values, width) 
+function distribution(probs, height, values, width)
+	width==0 && (width = length(probs))
 	ϵ = eps(eltype(probs))
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 	blocknum = length(histbars_blocks)
@@ -107,7 +108,7 @@ function distribution(probs, height, values)
 
 
 	maxheight = maximum(probs)
-
+	# maxheight = isnan(maxheight) ? 1 : maxheight
 
 	unicode_matrix = Matrix{Char}(undef, length(probs), height)
 	for (i,bin) in enumerate(probs)
@@ -115,26 +116,28 @@ function distribution(probs, height, values)
 		unicode_matrix[i, :] .= histbin_codes[floor(Int, strength)+1,:]
 	end
 	v_mean = sum(probs) / length(probs)
-	v_σ = sqrt(sum((probs .- v_mean).^2) / (length(probs) - 1))
+	v_σ = length(probs) > 1 ? sqrt(sum((probs .- v_mean).^2) / (length(probs)-1)) : 0f0 
 	v_min = minimum(probs)
 	v_max = maximum(probs)
-	for h in 1:height 	
-		print(join(unicode_matrix[:,h],""))
-		if h==height-2 && length(values)>0
-			print("  values:    ") 
-			printstyled(join(values,", "); color=:green, bold=true)
-		elseif h==height-1
-			print("  mean ± σ:  ") 
-			printstyled(lpad(round(v_mean; digits=6), 6); color=:green, bold=true)
-			print(" ± ")
-			printstyled(lpad(round(v_σ; digits=6), 6); color=:green, bold=true)
-		elseif h==height
-			print("  min … max: ") 
-			printstyled(lpad(round(v_min; digits=6), 7); color=:green, bold=true)
-			print(" … ")
-			printstyled(rpad(round(v_max; digits=6), 6); color=:green, bold=true)
+	for wx in 1:width:length(probs)
+		for h in 1:height 	
+			print(join(unicode_matrix[wx:min(wx+width,end),h],""))
+			if wx>length(probs)-width && h==height-2
+				print("  mean ± σ:  ") 
+				printstyled(lpad(round(v_mean; digits=6), 8); color=:green, bold=true)
+				print(" ± ")
+				printstyled(rpad(round(v_σ; digits=6), 8); color=:green, bold=true)
+			elseif wx>length(probs)-width && h==height-1
+				print("  min … max: ") 
+				printstyled(lpad(round(v_min; digits=6), 8); color=:green, bold=true)
+				print(" … ")
+				printstyled(rpad(round(v_max; digits=6), 8); color=:green, bold=true)
+			elseif wx>length(probs)-width && h==height && length(values)>0 && length(values)<20
+				print("  values:    ") 
+				printstyled(join(values,", "); color=:green, bold=true)
+			end
+			println()
 		end
-		println()
 	end
 end
 
