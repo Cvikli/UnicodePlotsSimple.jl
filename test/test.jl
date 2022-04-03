@@ -18,9 +18,10 @@ yticks = ["a","b","c","h","p"]
 data = [randn(5,5),randn(5,5),randn(5,5)]
 desnitry = [rand(1:150,5,5),rand(1:1350,5,5),rand(1:6,5,5)]
 
-heatmap(data,title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
+heatmap(data, title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
+heatmap(data, format=Val(:ONLYNUMBER), title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
+densitymap(data, desnitry, title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
 densitymap(data, desnitry, format=Val(:NUMBER), title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
-densitymap(data, desnitry, format=Val(:DENSITY), title=["first", "sec", "3rd"], xticks=xticks, yticks=yticks, reversey=true)
 
 data = [randn(5,5),randn(5,5),randn(5,5)]
 desnitry = [rand(1:150,5,5),rand(1:350,5,5),rand(1:6,5,5)]
