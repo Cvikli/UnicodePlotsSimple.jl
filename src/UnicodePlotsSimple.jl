@@ -7,26 +7,40 @@ export distribution
 export heatmap
 export densitymap
 
+eps(::Type{Any}) = Base.eps(Float32)
+eps(::Type{Int64}) = Base.eps(Float32)
+eps(::Type{Float32}) = Base.eps(Float32)
+eps(::Type{Float64}) = Base.eps(Float64)
 cpad(s, n::Integer, p=" ") = rpad(lpad(s,div(n+length(s),2),p),n,p)
 
+# HEATMAPS styles
+marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
+marker(format::Val{:ONLYNUMBER}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
+marker(format::Val{:NUMBERANDCOLOR}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
+
+# DENSITY styles
 marker(format::Val{:NUMBER}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
 marker(format::Val{:DISTRIBUTION}, cases, x,y,c) = lpad(string(max(cases[c][x, y],0) > 99 ? "…" : cases[c][x, y]),2) 
 marker(format::Val{:DENSITY}, cases, x,y,c) = ["░░", "▒▒", "▓▓", "██"][cases[c][x, y]]
-marker(format::Val{:HEATMAP}, cases, x,y,c) = "  " 
 
+# HEATMAPS styles
+markercolor(format::Val{:HEATMAP}, c) = Crayon(;background=c)
+markercolor(format::Val{:ONLYNUMBER}, c) = Crayon(;bold=true)
+markercolor(format::Val{:NUMBERANDCOLOR}, c) = Crayon(;background=c,foreground=(33,33,33), bold=true)
+
+# DENSITY styles
 markercolor(format::Val{:NUMBER}, c) = Crayon(;background=c,foreground=(33,33,33), bold=true)
 markercolor(format::Val{:DISTRIBUTION}, c) = Crayon(;background=c,foreground=(33,33,33), bold=true)
 markercolor(format::Val{:DENSITY}, c) = Crayon(;foreground=c)
-markercolor(format::Val{:HEATMAP}, c) = Crayon(;background=c)
 
-heatmap(xy::Matrix; title=[], xticks=[], yticks=[], reversey=false) = heatmap([xy], title=title, xticks=xticks, yticks=yticks, reversey=reversey) 
-heatmap(xy::Vector; title=[], xticks=[], yticks=[], reversey=false) = heatmap(xy,title,xticks,yticks,reversey)
-function heatmap(xy::Vector, title, xticks, yticks, reversey) 
-	densitymap(xy, nothing, title, xticks, yticks, reversey, Val(:HEATMAP))
+heatmap(xy::Matrix; format=Val(:HEATMAP) ,title=[], xticks=[], yticks=[], reversey=false) = heatmap([xy], title=title, xticks=xticks, yticks=yticks, reversey=reversey, format=format) 
+heatmap(xy::Vector; format=Val(:HEATMAP) ,title=[], xticks=[], yticks=[], reversey=false) = heatmap(xy,title,xticks,yticks,reversey, format)
+function heatmap(xy::Vector, title, xticks, yticks, reversey, format) 
+	densitymap(xy, nothing, title, xticks, yticks, reversey, format)
 end
 
-densitymap(xy::Matrix, case::Matrix; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = densitymap([xy], [case], title=title, xticks=xticks, yticks=yticks, reversey=reversey, format=format) 
-densitymap(xy::Vector, cases; title=[], xticks=[], yticks=[], reversey=false, format=Val(:HEATMAP)) = 
+densitymap(xy::Matrix, case::Matrix; title=[], xticks=[], yticks=[], reversey=false, format=Val(:DENSITY)) = densitymap([xy], [case], title=title, xticks=xticks, yticks=yticks, reversey=reversey, format=format) 
+densitymap(xy::Vector, cases; title=[], xticks=[], yticks=[], reversey=false, format=Val(:DENSITY)) = 
 densitymap(xy,cases,title,xticks,yticks,reversey,format)
 function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reversey, format) where T
 	ϵ = eps(eltype(xy[1]))
@@ -58,7 +72,10 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 	print(" " ^ (width-1),"min   …    max ");
 	println())
 
-	if isa(format, Val{:DISTRIBUTION})
+	if isa(format, Val{:ONLYNUMBER}) || isa(format, Val{:NUMBERANDCOLOR})
+		cases=[Int.(floor.(m.*1000)) for m in xy]  # we multiplicate with 1000 to avoid disappearing 0.01 and 0.2 and so on... (I know it is not perfect but for now it is enough for me...)
+	end
+	if isa(format, Val{:DISTRIBUTION}) || isa(format, Val{:ONLYNUMBER}) || isa(format, Val{:NUMBERANDCOLOR})
 		maxcase = maximum.(cases)
 		scaled_cases = [maxcase[c]>0 ? floor.(Int, case_m ./ (maxcase[c]*(1+ϵ)) * 98) .+ ifelse.(case_m .> 0,1,0) : zero(case_m) for (c,case_m) in enumerate(cases)]
 	elseif isa(format, Val{:DENSITY})
