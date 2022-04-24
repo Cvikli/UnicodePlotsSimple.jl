@@ -67,10 +67,7 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 
 	length(title)!= 0 && (print(" ");for c in 1:charts_num
 		print(cpad(title[c],2*length(xticks)))
-		print(" ")
-	end;
-	print(" " ^ (width-1),"min   …    max ");
-	println())
+	end;println())
 
 	if isa(format, Val{:ONLYNUMBER}) || isa(format, Val{:NUMBERANDCOLOR})
 		cases=[Int.(floor.(m.*1000)) for m in xy]  # we multiplicate with 1000 to avoid disappearing 0.01 and 0.2 and so on... (I know it is not perfect but for now it is enough for me...)
@@ -98,10 +95,14 @@ function densitymap(xy::Vector{Matrix{T}}, cases, title, xticks, yticks, reverse
 			print(" ")
 		end
 		
-		length(extremas) >= h && (print(" ");
-		printstyled(lpad(round(extremas[h][1]; digits=6), 8); color=:green, bold=true);
-		print(" … "); 
-		printstyled(lpad(round(extremas[h][2]; digits=8), 6); color=:green, bold=true))
+		if h==1
+			print(" " ^ (1), "min   …    max ");
+		else
+			length(extremas) >= h-1 && (print(" ");
+			printstyled(lpad(round(extremas[h-1][1]; digits=6), 8); color=:green, bold=true);
+			print(" … "); 
+			printstyled(lpad(round(extremas[h-1][2]; digits=8), 6); color=:green, bold=true))
+		end
 		println()
 	end
 	length(xticks) != 0 && (print("");
@@ -164,8 +165,8 @@ function distribution(probs, height, values)
 	end
 end
 
-histogram(values; width=64, height=3, title="", printstat=true, reversescale=false, line1="", line2="", line3="") = histogram(values, width, height, title, printstat, reversescale, line1, line2, line3)
-function histogram(values, width, height, title, printstat, reversescale, line1, line2, line3)
+histogram(values; width=64, height=3, title="", printstat=true, reversescale=false, line1="", line2="", line3="", fixleftscale=-123444f0, fixrightscale=-123444f0) = histogram(values, width, height, title, printstat, reversescale, line1, line2, line3, fixleftscale, fixrightscale)
+function histogram(values, width, height, title, printstat, reversescale, line1, line2, line3, fixleftscale, fixrightscale)
 	ϵ = eps(eltype(values))
 	length(values) == 0 && (println("$title  $line1  $line2 ---Empty histogram--- "); return)
 	histbars_blocks = [' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
@@ -178,12 +179,13 @@ function histogram(values, width, height, title, printstat, reversescale, line1,
 	# for h in 1:height 	
 	# 	println(join(histbin_codes[:,h],"")," █")
 	# end
-	firstbin = minimum(values)
-	endbin = maximum(values) 
+	firstbin = fixrightscale == -123444f0 ? minimum(values) : fixrightscale
+	endbin = fixleftscale == -123444f0 ? maximum(values) : fixleftscale
 	
 	binsize = firstbin == endbin ? 1. : (endbin - firstbin) / width * (1 + ϵ)
 	histogram_bins = zeros(Int, width)
 	for v in values
+		!(0 < floor(Int,(v-firstbin) / binsize)+1 <= width) && continue 
 		histogram_bins[floor(Int,(v-firstbin) / binsize)+1] += 1 
 	end
 	maxbin = maximum(histogram_bins) 
@@ -226,7 +228,11 @@ function histogram(values, width, height, title, printstat, reversescale, line1,
 		printstyled(lpad(round(v_mean; digits=5), 6); color=:green, bold=true)
 		print(" ± ")
 		printstyled(round(v_σ; digits=4); color=:green, bold=true)
-		println()
+		if fixrightscale == -123444f0 && fixleftscale == -123444f0
+			println()
+		else
+			println(" Cutted: $(length(values)-sum(histogram_bins))")
+		end
 		# print("Range (min … max): ") 
 		# printstyled(lpad(round(firstbin; digits=6), 6); color=:green, bold=true)
 		# print(" … ")
