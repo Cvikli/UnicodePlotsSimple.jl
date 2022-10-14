@@ -126,7 +126,7 @@ function distribution(probs, height, values)
 
 
 	maxheight = maximum(probs)
-	# maxheight = isnan(maxheight) ? 1 : maxheight
+	# maxheight = !isfinite(maxheight) ? 1 : maxheight
 
 	unicode_matrix = Matrix{Char}(undef, length(probs), height)
 	for (i,bin) in enumerate(probs)
@@ -244,7 +244,7 @@ function histogram(values, width, height, title, printstat, reversescale, line1,
 end
 
 function histogramdetailed(values, width=64, height=3)
-	# TODO implement fined detailed histogram print...
+	# TODO implement fined detailed histogram print... maybe pixels on CMD?
 	@assert false "Unimplemented fine grained sparseprint..."
 	# 30×30 SparseMatrixCSC{Bool, Int64} with 445 stored entries:
 	# ⡙⠅⡥⠹⢗⢊⢣⣽⠜⢬⣛⠇⡦⡮⣑
